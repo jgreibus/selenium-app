@@ -1,22 +1,34 @@
-package com.softneta.selenium;
+package com.softneta;
+
 import io.github.bonigarcia.wdm.ChromeDriverManager;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.*;
-import java.util.*;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Scanner;
 
 import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
-public class openStudies  {
+public class OpenStudies {
 
     private String studyUID;
     private static final int TIMEOUT = 6; // seconds
@@ -27,7 +39,7 @@ public class openStudies  {
 
     static TestProperties testConf = new TestProperties();
 
-    public openStudies(String studyUID) {
+    public OpenStudies(String studyUID) {
         this.studyUID = studyUID;
     }
 
@@ -129,11 +141,48 @@ public class openStudies  {
     }
     private void saveCanvas(String name, WebElement canvas) {
         try {
-            new File("target/surefire-reports/canvas/").mkdirs();
+            new File("C:\\Target\\").mkdirs();
+            FileUtils.copyFile(WebElementExtender.captureElementBitmap(canvas), new File("C:\\Target\\" + name + ".png"));
             System.out.println("Canvas saved (" + name + ".png).");
         } catch (Exception e) {
             System.err.println("Failed to save canvas (" + name + ".png).");
         }
+    }
+
+    @Test
+    public void compareImages() throws IOException {
+        File source = new File("C:\\Target\\study_"+studyUID+".png");
+        File target = new File("C:\\Target\\image.jpg");
+        System.out.println(getSimiliarityProcentage(source, target));
+    }
+
+    public float getSimiliarityProcentage(File source, File target) throws IOException {
+
+        float procentage = 0;
+
+        BufferedImage bufferedSource = ImageIO.read(source);
+        DataBuffer dataBufferSource = bufferedSource.getData().getDataBuffer();
+        int sourceSize = dataBufferSource.getSize();
+
+        BufferedImage bufferedTarget = ImageIO.read(target);
+        DataBuffer dataBufferTarget = bufferedTarget.getData().getDataBuffer();
+        int targetSize = dataBufferSource.getSize();
+        double count = 0;
+        System.out.println("Source size "+sourceSize);
+        System.out.println("Target size "+targetSize);
+        if(sourceSize == targetSize){
+            for(int i=0; i < sourceSize; i++){
+                if(dataBufferSource.getElem(i) == dataBufferTarget.getElem(i)) count = count+1;
+            }
+            System.out.println("count "+(count*100));
+            System.out.println("source size "+sourceSize);
+            procentage = (float) ((count * 100)/sourceSize);
+            System.out.println("Procentage "+procentage);
+        }
+        else{
+            System.out.println("Images are not of the same size");
+        }
+        return procentage;
     }
 
 

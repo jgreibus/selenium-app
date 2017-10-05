@@ -1,4 +1,4 @@
-package com.softneta.selenium;
+package com.softneta;
 
 public class Study {
     private String uid;
